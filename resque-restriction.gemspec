@@ -35,6 +35,7 @@ Gem::Specification.new do |s|
   s.rubygems_version = "2.2.2"
   s.summary = "resque-restriction is an extension to resque queue system that restricts the execution number of certain jobs in a period time."
 
+  s.add_dependency 'activejob'
   if s.respond_to? :specification_version then
     s.specification_version = 4
 

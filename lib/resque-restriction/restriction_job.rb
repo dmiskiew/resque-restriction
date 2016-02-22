@@ -1,4 +1,4 @@
-require 'active_job'
+#require 'active_job'
 
 module Resque
   module Plugins
@@ -38,6 +38,7 @@ module Resque
           # later if not.  Note that the value stored is the number of outstanding
           # jobs allowed, thus we need to reincrement if the decr discovers that
           # we have bypassed the limit
+
           if period_active
             value = Resque.redis.decrby(key, 1).to_i
             keys_decremented << key
@@ -45,6 +46,9 @@ module Resque
               # reincrement the keys if one of the periods triggers DontPerform so
               # that we accurately track capacity
               keys_decremented.each {|k| Resque.redis.incrby(k, 1) }
+
+              #instance = job_or_instantiate(*args)
+              #instance.enqueue(queue: restriction_queue_name(args))
               Resque.push restriction_queue_name(args), :class => to_s, :args => args
               raise Resque::Job::DontPerform
             end
@@ -114,23 +118,23 @@ module Resque
       end
     end
 
-    class RestrictionJob < ActiveJob::Base
+    class RestrictionJob #< ActiveJob::Base
       extend Restriction
 
-      before_perform do |job|
-        self.class.before_perform_restriction(*job.arguments)
-      end
-
-      after_perform do |job|
-        self.class.after_perform_restriction(*job.arguments)
-      end
-
-      rescue_from(StandardError) do |err|
-        self.class.on_failure_restriction(err, *self.arguments)
-      end
+      # before_perform do |job|
+      #   self.class.before_perform_restriction(*job.arguments)
+      # end
+      #
+      # after_perform do |job|
+      #   self.class.after_perform_restriction(*job.arguments)
+      # end
+      #
+      # rescue_from(StandardError) do |err|
+      #   self.class.on_failure_restriction(err, *self.arguments)
+      # end
 
       def self.restriction_queue_name(args = [])
-        queue_name = self.new(*args).queue_name
+        queue_name = self.new.queue_name(*args)
         "#{Resque::Plugins::Restriction::RESTRICTION_QUEUE_PREFIX}_#{queue_name}"
       end
     end
